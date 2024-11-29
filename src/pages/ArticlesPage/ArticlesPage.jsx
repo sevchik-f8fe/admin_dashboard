@@ -4,7 +4,6 @@ import EditNoteIcon from '@mui/icons-material/EditNote';
 import { styled } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Dropzone, FullScreen, ImagePreview } from "@files-ui/react";
 
 import { useArticles } from "./store";
 import TopNavigation from "../../components/TopNavigation/TopNavigation";
