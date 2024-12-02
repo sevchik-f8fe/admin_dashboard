@@ -9,9 +9,19 @@ import { useArticles } from "./store";
 import TopNavigation from "../../components/TopNavigation/TopNavigation";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import SearchField from "../../components/SearchField/SearchField";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { useAuth } from ".././AuthPage/store";
 
 const ArticlesPage = () => {
     const { articles, setArticles, filterParam, setFilterParam } = useArticles();
+    const { isAuth } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!isAuth) navigate('/auth');
+    });
 
     return (
         <Box>

@@ -2,15 +2,33 @@ import { Box, Button, Typography, InputAdornment, TextField, FormControl } from 
 import { useForm } from "react-hook-form";
 import LockIcon from '@mui/icons-material/Lock';
 import PersonIcon from '@mui/icons-material/Person';
+import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "./store";
+import axios from "axios";
+import { useEffect } from "react";
 
 const AuthPage = () => {
-    const { data, setData } = useAuth();
+    const { setData, isAuth, setAuth } = useAuth();
     const { register, handleSubmit } = useForm();
-    const onSubmit = data => {
+    const navigate = useNavigate();
+
+    const onSubmit = async (data) => {
         setData(data);
-    }
+
+        await axios.post('http://localhost:3000/admin_dashboard/auth/login', { password: data.password, login: data.login }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
+        })
+            .then(response => { setAuth(response.data.access) })
+            .catch(error => console.error('Ошибка: ', error));
+    };
+
+    useEffect(() => {
+        if (isAuth) navigate('/')
+    }, [isAuth])
 
     return (
         <Box

@@ -5,6 +5,9 @@ import OrderPage from "./OrderComponent/OrderPage";
 import TopNavigation from "../../components/TopNavigation/TopNavigation";
 import { useOrderPage } from "./store";
 import SearchField from "../../components/SearchField/SearchField";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from ".././AuthPage/store";
 
 const OrdersPage = () => {
     const { orderOpen, setOrderOpen, setFilterParam } = useOrderPage();
@@ -29,6 +32,13 @@ const OrdersPage = () => {
         { status: 'finished', fullname: 'Семйн Отов Игоревич', date: '12.02.23', id: '12345676542' },
         { status: 'finished', fullname: 'Семйн Отов Игоревич', date: '12.02.23', id: '12345676542' },
     ]
+
+    const { isAuth } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!isAuth) navigate('/auth');
+    });
 
     return (
 
