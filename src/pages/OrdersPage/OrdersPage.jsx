@@ -33,12 +33,13 @@ const OrdersPage = () => {
         { status: 'finished', fullname: 'Семйн Отов Игоревич', date: '12.02.23', id: '12345676542' },
     ]
 
-    const { isAuth } = useAuth();
+    const { token } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!isAuth) navigate('/auth');
-    });
+        if (token.length === 0) navigate('/auth');
+        // else {}
+    }, [token]);
 
     return (
 

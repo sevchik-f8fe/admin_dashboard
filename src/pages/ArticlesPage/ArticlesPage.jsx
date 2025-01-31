@@ -13,15 +13,31 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from ".././AuthPage/store";
+import axios from "axios";
 
 const ArticlesPage = () => {
     const { articles, setArticles, filterParam, setFilterParam } = useArticles();
-    const { isAuth } = useAuth();
+    const { token } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!isAuth) navigate('/auth');
-    });
+        const fetchGetArticles = async () => {
+            await axios.get('https://vanopoizonserver.ru/admin_dashboard/getArticles', {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => setArticles(response.data.articles))
+                .catch(err => {
+                    console.log(err);
+                })
+        }
+
+        if (token.length === 0) navigate('/auth');
+        else {
+            fetchGetArticles();
+        }
+    }, []);
 
     return (
         <Box>
@@ -29,27 +45,6 @@ const ArticlesPage = () => {
                 <SearchField label="Поиск по статьям" onSearch={(data) => setFilterParam(data)} onBreak={() => setFilterParam('')} />
                 <AddNewArticle />
             </TopNavigation>
-
-            {/* <IconButton
-                sx={{
-                    position: 'fixed',
-                    backgroundColor: '#EB5E28',
-                    bottom: '3rem',
-                    boxShadow: '0px 0px 15px 0px rgba(37, 36, 34, 0.15)',
-                    right: '3rem',
-                    zIndex: '100',
-                    '&:hover': {
-                        backgroundColor: '#c64a19',
-                    },
-                }}
-            >
-                <AddIcon
-                    sx={{
-                        color: '#fff',
-                        fontSize: "2.5rem"
-                    }}
-                />
-            </IconButton> */}
 
             <Box
                 sx={{
@@ -74,7 +69,7 @@ const ArticlesPage = () => {
                 >
                     {articles.length > 0 ? (
                         articles
-                            .filter(elem => elem.title.toLowerCase().includes(filterParam.toLowerCase()) || elem.id.toString().includes(filterParam) || elem.date.includes(filterParam))
+                            .filter(elem => elem.title.toLowerCase().includes(filterParam.toLowerCase()) || elem.articleId.toString().includes(filterParam) || elem.date.includes(filterParam))
                             .map(elem => <ArcticleElement article={elem} key={nanoid()} />)
                     ) : (
                         <Typography
@@ -85,7 +80,6 @@ const ArticlesPage = () => {
                             }}
                         >Ты еще не создал ни одну статью</Typography>
                     )}
-                    {/*  */}
                 </Box>
 
                 <Box
@@ -93,8 +87,6 @@ const ArticlesPage = () => {
                         position: "sticky",
                         top: '6rem',
                         right: '2rem',
-                        // maxWidth: '70%',
-                        // minHeight: '20vh',
                         maxHeight: '0vh',
                         minWidth: '70%',
                     }}
@@ -107,8 +99,8 @@ const ArticlesPage = () => {
 }
 
 const CurrentArticleContainer = () => {
-
-    const { currentArticle, removeArticle, saveArticle, articles, setCurrentArticleField, setCurrentArticle, currentArticleCopy } = useArticles();
+    const { token } = useAuth();
+    const { currentArticle, currentFile, setCurrentFile, removeArticle, saveArticle, setCurrentArticleField } = useArticles();
 
     const VisuallyHiddenInput = styled('input')({
         clip: 'rect(0 0 0 0)',
@@ -123,7 +115,7 @@ const CurrentArticleContainer = () => {
     });
 
     return (
-        (currentArticle.type) ? (
+        (currentArticle?.type) ? (
             <Box
                 sx={{
                     display: 'flex',
@@ -150,19 +142,19 @@ const CurrentArticleContainer = () => {
                             fontWeight: 600,
                             color: '#25242280'
                         }}
-                    >{currentArticle.id}</span></Typography>
+                    >{currentArticle.articleId}</span></Typography>
                     <Box>
                         <FormControl variant="standard" sx={{ minWidth: '10rem' }}>
                             <InputLabel id="staus-label">Тип статьи</InputLabel>
                             <Select
                                 labelId="status-label"
-                                value={currentArticleCopy.type}
+                                value={currentArticle.type}
                                 onChange={(e) => {
                                     setCurrentArticleField('type', e.target.value)
                                 }}
                             >
                                 <MenuItem value={'small'}>маленькая</MenuItem>
-                                <MenuItem value={'large'}>большая</MenuItem>
+                                <MenuItem value={'big'}>большая</MenuItem>
                             </Select>
                             <FormHelperText>Выбери тип статьи</FormHelperText>
                         </FormControl>
@@ -173,7 +165,7 @@ const CurrentArticleContainer = () => {
                             variant="outlined"
                             label="Название статьи"
                             size="small"
-                            value={currentArticleCopy.title}
+                            value={currentArticle.title}
                             onChange={(e) => setCurrentArticleField('title', e.target.value)}
                             helperText="Это название будешь видеть только ты"
                             sx={{
@@ -188,8 +180,8 @@ const CurrentArticleContainer = () => {
                             helperText=" "
                             size="small"
                             label="Ссылка на статью"
-                            value={currentArticleCopy.telegraphLink}
-                            onChange={(e) => setCurrentArticleField('telegraphLink', e.target.value)}
+                            value={currentArticle.link}
+                            onChange={(e) => setCurrentArticleField('link', e.target.value)}
                             sx={{
                                 minWidth: '25rem'
                             }}
@@ -204,7 +196,7 @@ const CurrentArticleContainer = () => {
                     >
                         <Button
                             variant="contained"
-                            onClick={() => saveArticle(currentArticleCopy)}
+                            onClick={() => saveArticle(currentArticle, token)}
                             color="success"
                             sx={{
                                 p: '.6rem 1rem',
@@ -219,9 +211,7 @@ const CurrentArticleContainer = () => {
                             startIcon={<DeleteIcon />}
                             color="error"
                             variant="contained"
-                            onClick={() => {
-                                removeArticle(currentArticle.id);
-                            }}
+                            onClick={() => removeArticle(currentArticle.articleId, token)}
                             sx={{
                                 p: '.6rem 1rem',
                                 alignSelf: 'start',
@@ -253,18 +243,18 @@ const CurrentArticleContainer = () => {
                             sx={{
                                 borderRadius: '1rem',
                                 backgroundColor: '#CCC5B930',
-                                backgroundImage: `url(${currentArticleCopy.previewUrl})`,
+                                backgroundImage: `url(${currentArticle.photoUrl})`,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',
                                 backgroundRepeat: 'no-repeat',
-                                ...(currentArticleCopy.type == 'small' ? {
+                                ...(currentArticle.type == 'small' ? {
                                     minHeight: '12rem',
                                     maxHeight: '12rem',
                                     minWidth: '12rem',
                                     maxWidth: '12rem',
                                 } : {
-                                    minHeight: '20rem',
-                                    maxHeight: '20rem',
+                                    minHeight: '18rem',
+                                    maxHeight: '18rem',
                                     minWidth: '12rem',
                                     maxWidth: '12rem',
                                 }),
@@ -295,7 +285,7 @@ const CurrentArticleContainer = () => {
                                         const reader = new FileReader();
 
                                         reader.onload = (e) => {
-                                            setCurrentArticleField('previewUrl', e.target.result);
+                                            setCurrentArticleField('photoUrl', e.target.result);
                                         };
 
                                         reader.readAsDataURL(file);
@@ -334,7 +324,7 @@ const ArcticleElement = ({ article }) => {
 
     return (
         <Box
-            onClick={() => setCurrentArticle(article.id)}
+            onClick={() => setCurrentArticle(article.articleId)}
             sx={{
                 borderRadius: '1rem',
                 p: '1rem',
@@ -363,7 +353,7 @@ const ArcticleElement = ({ article }) => {
                 <Box
                     sx={{
                         borderRadius: '1rem',
-                        backgroundImage: `url(${article.previewUrl})`,
+                        backgroundImage: `url(${article.photoUrl})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         backgroundRepeat: 'no-repeat',
@@ -403,7 +393,7 @@ const ArcticleElement = ({ article }) => {
                                 fontWeight: 600,
                                 color: '#25242280'
                             }}
-                        >{article.date}</Typography>
+                        >{new Date(article?.updatedAt).toLocaleString()}</Typography>
 
                         <Typography
                             sx={{
@@ -414,31 +404,22 @@ const ArcticleElement = ({ article }) => {
                                 fontWeight: 600,
                                 color: '#25242280'
                             }}
-                        >{article.id}</Typography>
+                        >{article.articleId}</Typography>
                     </Box>
                 </Box>
             </Box>
-            <EditNoteIcon sx={{
-                fontSize: '2rem',
-                color: '#252422',
-            }} />
         </Box>
     );
 }
 
 const AddNewArticle = () => {
-    const { addArticle, setCurrentArticle, setCurrentArticleField } = useArticles();
-
-    const clickHandle = () => {
-        setCurrentArticle(nanoid(8));
-        // setCurrentArticle({ id: nanoid(), title: '', date: new Date().toLocaleString(), telegraphLink: '', previewUrl: '', type: '' });
-    }
+    const { setCurrentArticle, setCurrentArticleField } = useArticles();
 
     return (
         <Button
             variant="outlined"
             startIcon={<AddIcon />}
-            onClick={clickHandle}
+            onClick={() => setCurrentArticle(nanoid(8))}
             sx={{
                 p: '.6rem 1rem',
                 fontSize: '1rem'

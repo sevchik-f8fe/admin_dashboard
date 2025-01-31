@@ -1,10 +1,11 @@
 import { create } from "zustand";
 
 export const useAuth = create((set) => ({
+    token: '',
     data: {},
-    isAuth: false,
-    setAuth: (value) => set((state) => {
-        return { isAuth: value }
+    setToken: (value) => set((state) => {
+        console.log(value)
+        return { token: value }
     }),
     setData: (value) => set((state) => {
         console.log(value)

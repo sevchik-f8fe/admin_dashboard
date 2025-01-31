@@ -2,17 +2,17 @@ import { Box, Typography, FormControl, InputLabel, MenuItem, Select, List, ListI
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from ".././AuthPage/store";
+// import { useAuth } from ".././AuthPage/store";
 
 import TopNavigation from "../../components/TopNavigation/TopNavigation";
 import { nanoid } from "nanoid";
 
 const AnalyticsPage = () => {
-    const { isAuth } = useAuth();
+    // const { isAuth } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!isAuth) navigate('/auth');
+        // if (!isAuth) navigate('/auth');
     });
 
     const pickTimeData = [

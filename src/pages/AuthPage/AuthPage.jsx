@@ -9,26 +9,25 @@ import axios from "axios";
 import { useEffect } from "react";
 
 const AuthPage = () => {
-    const { setData, isAuth, setAuth } = useAuth();
+    const { token, setToken, setData, data } = useAuth();
     const { register, handleSubmit } = useForm();
     const navigate = useNavigate();
 
     const onSubmit = async (data) => {
         setData(data);
 
-        await axios.post('http://localhost:3000/admin_dashboard/auth/login', { password: data.password, login: data.login }, {
+        await axios.post('https://vanopoizonserver.ru/admin_dashboard/auth', { password: data.password, login: data.login }, {
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
             }
         })
-            .then(response => { setAuth(response.data.access) })
-            .catch(error => console.error('Ошибка: ', error));
+            .then(response => setToken(response.data.token))
+            .catch(error => console.error('Ошибка'));
     };
 
     useEffect(() => {
-        if (isAuth) navigate('/')
-    }, [isAuth])
+        if (token.length > 0) navigate('/')
+    }, [token])
 
     return (
         <Box
