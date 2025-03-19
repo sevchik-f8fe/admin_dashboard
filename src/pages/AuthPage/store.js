@@ -1,14 +1,15 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from 'zustand/middleware'
 
-export const useAuth = create((set) => ({
-    token: '',
-    data: {},
-    setToken: (value) => set((state) => {
-        console.log(value)
-        return { token: value }
-    }),
-    setData: (value) => set((state) => {
-        console.log(value)
-        return { data: value }
-    })
-}))
+export const useAuth = create()(
+    persist(
+        (set) => ({
+            token: '',
+            setToken: (value) => set({ token: value }),
+        }),
+        {
+            name: 'token-storage',
+            storage: createJSONStorage(() => sessionStorage),
+        },
+    ),
+);

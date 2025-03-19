@@ -38,7 +38,6 @@ const OrdersPage = () => {
 
     useEffect(() => {
         if (token.length === 0) navigate('/auth');
-        // else {}
     }, [token]);
 
     return (

@@ -64,12 +64,12 @@ const ArticlesPage = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '1rem',
-                        // overflowY: 'auto',
                     }}
                 >
                     {articles.length > 0 ? (
                         articles
-                            .filter(elem => elem.title.toLowerCase().includes(filterParam.toLowerCase()) || elem.articleId.toString().includes(filterParam) || elem.date.includes(filterParam))
+                            .filter(elem => elem.title.toLowerCase().includes(filterParam.toLowerCase()) || elem.articleId.toString().includes(filterParam) || elem.updatedAt.includes(filterParam))
+                            .sort((a, b) => a.updatedAt < b.updatedAt)
                             .map(elem => <ArcticleElement article={elem} key={nanoid()} />)
                     ) : (
                         <Typography
@@ -100,7 +100,7 @@ const ArticlesPage = () => {
 
 const CurrentArticleContainer = () => {
     const { token } = useAuth();
-    const { currentArticle, currentFile, setCurrentFile, removeArticle, saveArticle, setCurrentArticleField } = useArticles();
+    const { currentArticle, isLoading, error, removeArticle, saveArticle, setCurrentArticleField } = useArticles();
 
     const VisuallyHiddenInput = styled('input')({
         clip: 'rect(0 0 0 0)',
@@ -167,7 +167,8 @@ const CurrentArticleContainer = () => {
                             size="small"
                             value={currentArticle.title}
                             onChange={(e) => setCurrentArticleField('title', e.target.value)}
-                            helperText="Это название будешь видеть только ты"
+                            error={error.message == 'title'}
+                            helperText={error.message == 'title' ? "Введи название для статьи" : ' '}
                             sx={{
                                 minWidth: '25rem'
                             }}
@@ -177,10 +178,11 @@ const CurrentArticleContainer = () => {
                     <Box>
                         <TextField
                             variant="outlined"
-                            helperText=" "
                             size="small"
                             label="Ссылка на статью"
                             value={currentArticle.link}
+                            helperText={error.message == 'link' ? "Введи ссылку статью" : ' '}
+                            error={error.message == 'link'}
                             onChange={(e) => setCurrentArticleField('link', e.target.value)}
                             sx={{
                                 minWidth: '25rem'
@@ -198,18 +200,20 @@ const CurrentArticleContainer = () => {
                             variant="contained"
                             onClick={() => saveArticle(currentArticle, token)}
                             color="success"
+                            disabled={isLoading}
                             sx={{
                                 p: '.6rem 1rem',
                                 alignSelf: 'start',
                                 fontSize: '1rem'
                             }}
                         >
-                            сохранить
+                            {isLoading ? 'загрузка' : 'сохранить'}
                         </Button>
 
                         <Button
                             startIcon={<DeleteIcon />}
                             color="error"
+                            disabled={isLoading}
                             variant="contained"
                             onClick={() => removeArticle(currentArticle.articleId, token)}
                             sx={{
@@ -258,15 +262,27 @@ const CurrentArticleContainer = () => {
                                     minWidth: '12rem',
                                     maxWidth: '12rem',
                                 }),
-                                border: '1px solid #CCC5B9'
+                                ...(error.message == 'photoUrl' ? {
+                                    border: '1px solid #f44336'
+                                } : {
+                                    border: '1px solid #CCC5B9'
+                                }),
                             }}
                         >
                         </Box>
+
+                        <Typography
+                            sx={{
+                                p: '0',
+                                color: '#f44336'
+                            }}
+                        >{error.message == 'photoUrl' ? 'загрузи фотку заебал 💔💔💔' : ' '}</Typography>
 
                         <Button
                             component="label"
                             role={undefined}
                             variant="text"
+                            disabled={isLoading}
                             tabIndex={-1}
                             startIcon={<CloudUploadIcon />}
                             sx={{
@@ -413,12 +429,13 @@ const ArcticleElement = ({ article }) => {
 }
 
 const AddNewArticle = () => {
-    const { setCurrentArticle, setCurrentArticleField } = useArticles();
+    const { setCurrentArticle, setCurrentArticleField, isLoading } = useArticles();
 
     return (
         <Button
             variant="outlined"
             startIcon={<AddIcon />}
+            disabled={isLoading}
             onClick={() => setCurrentArticle(nanoid(8))}
             sx={{
                 p: '.6rem 1rem',

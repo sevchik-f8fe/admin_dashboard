@@ -16,7 +16,8 @@ const TopNavigation = ({ title, children }) => {
                 p: '1rem 0rem 1rem 5rem',
                 backgroundColor: '#FFFCF2',
                 display: 'flex',
-                gap: '3rem',
+                gap: '2rem',
+                flexWrap: 'wrap',
                 alignItems: 'center'
             }}
         >

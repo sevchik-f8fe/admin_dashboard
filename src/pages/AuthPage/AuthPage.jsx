@@ -9,13 +9,11 @@ import axios from "axios";
 import { useEffect } from "react";
 
 const AuthPage = () => {
-    const { token, setToken, setData, data } = useAuth();
+    const { token, setToken } = useAuth();
     const { register, handleSubmit } = useForm();
     const navigate = useNavigate();
 
     const onSubmit = async (data) => {
-        setData(data);
-
         await axios.post('https://vanopoizonserver.ru/admin_dashboard/auth', { password: data.password, login: data.login }, {
             headers: {
                 'Content-Type': 'application/json',
@@ -23,6 +21,7 @@ const AuthPage = () => {
         })
             .then(response => setToken(response.data.token))
             .catch(error => console.error('Ошибка'));
+        navigate('/')
     };
 
     useEffect(() => {
